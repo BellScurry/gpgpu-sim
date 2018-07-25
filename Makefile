@@ -89,13 +89,42 @@ ifneq ($(GPGPUSIM_POWER_MODEL),)
 	MCPAT = $(MCPAT_OBJ_DIR)/*.o
 endif
 
+# JONGHO
+CC  = gcc
+CXX = g++
 
-.PHONY: check_setup_environment check_power
-gpgpusim: check_setup_environment check_power makedirs $(TARGETS)
+# JONGHO
+.PHONY: remove_symlink_gcc-4.4 check_setup_environment check_power symlink_gcc-4.4
+gpgpusim: remove_symlink_gcc-4.4 check_setup_environment check_power makedirs $(TARGETS) symlink_gcc-4.4
 
+#
+# JONGHO : Initialize and remove symbolic link to gcc-4.4 and g++-4.4
+#
+remove_symlink_gcc-4.4:
+	@if [ -f $(CUDA_INSTALL_PATH)/bin/gcc ]; then \
+		rm $(CUDA_INSTALL_PATH)/bin/gcc; \
+		echo "Removing symbolic link to gcc"; \
+	fi;
+	@if [ -f $(CUDA_INSTALL_PATH)/bin/g++ ]; then \
+		rm $(CUDA_INSTALL_PATH)/bin/g++; \
+		echo "Removing symbolic link to g++"; \
+	fi;
+
+#
+# JONGHO : Symbolic link to gcc-4.4 and g++-4.4
+#
+symlink_gcc-4.4:
+	@if [ ! -f $(CUDA_INSTALL_PATH)/bin/gcc ]; then \
+		echo "Creating symbolic link to gcc"; \
+		ln -s /home/jongho/usr/bin/gcc-4.4 $(CUDA_INSTALL_PATH)/bin/gcc; \
+	fi;
+	@if [ ! -f $(CUDA_INSTALL_PATH)/bin/g++ ]; then \
+		echo "Creating symbolic link to g++"; \
+		ln -s /home/jongho/usr/bin/g++-4.4 $(CUDA_INSTALL_PATH)/bin/g++; \
+	fi;
 
 check_setup_environment:
-	 @if [ ! -n "$(GPGPUSIM_ROOT)" -o ! -n "$(CUDA_INSTALL_PATH)" -o ! -n "$(GPGPUSIM_SETUP_ENVIRONMENT_WAS_RUN)" ]; then \
+	 @if [ ! -n "$(GPGPUSIM_ROOT)" -o ! -n "$(CUDA_INSTALL_PATH)" ]; then \
 		echo "ERROR *** run 'source setup_environment' before 'make'; please see README."; \
 		exit 101; \
 	 else \
@@ -233,7 +262,7 @@ docs:
 cleandocs:
 	$(MAKE) clean -C doc/doxygen/
 
-clean: makedirs
+clean:
 	$(MAKE) cleangpgpusim
 
 cleangpgpusim: cleandocs
